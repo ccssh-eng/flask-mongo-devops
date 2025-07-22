@@ -1,0 +1,44 @@
+name: CI - Flask DevOps
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test-lint-build-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Run flake8
+      run: flake8 app.py
+
+    - name: Run pytest
+      run: pytest tests/
+
+    - name: Build Docker image
+      run: docker build -t flask-app:ci .
+
+    - name: Install Trivy
+      run: |
+        sudo apt-get install wget -y
+        wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.51.1_Linux-64bit.deb
+        sudo dpkg -i trivy_0.51.1_Linux-64bit.deb
+
+    - name: Scan Docker image with Trivy
+      run: |
+        trivy image --exit-code 1 --severity CRITICAL,HIGH flask-app:ci
