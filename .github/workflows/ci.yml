@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # .github/workflows/devops-pipeline.yaml
 name: CI/CD DevSecOps Pipeline
 
@@ -10,7 +9,7 @@ on:
 
 jobs:
   build-test-scan-deploy:
- 8   runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
     env:
       IMAGE_NAME: flask-app
@@ -48,7 +47,7 @@ jobs:
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
-8          severity: 'CRITICAL,HIGH'
+          severity: 'CRITICAL,HIGH'
 
       - name: 🚚 Log in to DockerHub
         uses: docker/login-action@v2
@@ -73,7 +72,7 @@ jobs:
 
       - name: ✅ Done
         run: echo "CI/CD pipeline completed!"
-=======
+---
 name: CI - Flask DevOps
 
 on:
@@ -118,4 +117,4 @@ jobs:
     - name: Scan Docker image with Trivy
       run: |
         trivy image --exit-code 1 --severity CRITICAL,HIGH flask-app:ci
->>>>>>> e54131fa806770adc355d10ca493ee78cd1ad4b6
+
