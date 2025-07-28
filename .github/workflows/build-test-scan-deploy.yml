@@ -1,0 +1,61 @@
+name: Build, Test, Scan & Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ci-cd:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: 🧪 Run tests with pytest
+        run: |
+          pytest tests/
+
+      - name: 🧼 Lint with flake8
+        run: |
+          flake8 .
+
+      - name: 🐳 Build Docker image
+        run: |
+          docker build -t flask-app:ci .
+
+      - name: 🔎 Install Trivy
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install wget apt-transport-https gnupg lsb-release -y
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update -y
+2          sudo apt-get install trivy -y
+
+      - name: 🔍 Scan image with Trivy
+        run: |
+          trivy image flask-app:ci
+
+      - name: 🔐 Login to DockerHub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: 📤 Push image to DockerHub
+        run: |
+          docker tag flask-app:ci ${{ secrets.DOCKER_USERNAME }}/flask-app:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/flask-app:latest
+
+      - name: 🚀 Deploy to K8s
+        run: |
+          kubectl apply -f k8s/
