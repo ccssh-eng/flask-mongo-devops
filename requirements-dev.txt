@@ -1,2 +1,6 @@
-flake8
-pytest
+-r requirements.txt
+
+# Dev/test tools
+pytest==8.2.1
+flake8==7.0.0
+trivy==0.64.1  # (facultatif, uniquement si tu veux pip install au lieu de binaire)
