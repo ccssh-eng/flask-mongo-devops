@@ -30,3 +30,4 @@ venv/
 .env
 *.pytest_cache/
 .coverage
+minikube-linux-amd64
